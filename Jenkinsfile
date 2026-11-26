@@ -2,6 +2,14 @@
 pipeline {
     agent any
 
+    environment {
+        DB_HOST = 'localhost'
+        DB_PORT = '5432'
+        DB_NAME = 'taskdb'
+        DB_USER = 'taskuser'
+        DB_PASSWORD = 'devpassword'
+    }
+
     stages {
         stage('Checkout') {
             steps {
