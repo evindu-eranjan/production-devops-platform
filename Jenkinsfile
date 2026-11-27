@@ -1,8 +1,10 @@
+
 pipeline {
     agent any
 
     environment {
         DOCKER_IMAGE = 'evindu010/production-devops-platform'
+        DEPLOY_DIR = '/home/ubuntu/production-deployment'
     }
 
     stages {
@@ -53,6 +55,16 @@ pipeline {
                         docker logout
                     '''
                 }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sh '''
+                    docker pull ${DOCKER_IMAGE}:latest
+
+                    docker compose -f ${DEPLOY_DIR}/compose.yaml up -d --no-deps api
+                '''
             }
         }
     }
