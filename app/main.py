@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
@@ -7,10 +8,23 @@ from app.database import get_db
 from app.models import TaskDB
 
 
+# FastAPI Application
+
 app = FastAPI(
     title="Task Management API",
     description="Production DevOps Project",
     version="1.0.0"
+)
+
+
+# CORS Configuration
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -49,7 +63,11 @@ def home():
 
 # CREATE TASK
 
-@app.post("/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/tasks",
+    response_model=TaskResponse,
+    status_code=status.HTTP_201_CREATED
+)
 def create_task(task: Task, db: Session = Depends(get_db)):
 
     new_task = TaskDB(
