@@ -4,10 +4,12 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'evindu010/production-devops-platform'
+        FRONTEND_IMAGE = 'evindu010/production-devops-frontend'
         DEPLOY_DIR = '/home/ubuntu/production-deployment'
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -33,13 +35,28 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Backend Docker Image') {
             steps {
-                sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest .'
+                sh '''
+                    docker build \
+                        -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE}:latest .
+                '''
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Build Frontend Docker Image') {
+            steps {
+                sh '''
+                    docker build \
+                        -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} \
+                        -t ${FRONTEND_IMAGE}:latest \
+                        ./frontend
+                '''
+            }
+        }
+
+        stage('Push Images to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-credentials',
@@ -47,10 +64,14 @@ pipeline {
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            -u "$DOCKER_USERNAME" --password-stdin
 
                         docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                         docker push ${DOCKER_IMAGE}:latest
+
+                        docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}
+                        docker push ${FRONTEND_IMAGE}:latest
 
                         docker logout
                     '''
@@ -62,8 +83,11 @@ pipeline {
             steps {
                 sh '''
                     docker pull ${DOCKER_IMAGE}:latest
+                    docker pull ${FRONTEND_IMAGE}:latest
 
-                    docker compose -f ${DEPLOY_DIR}/compose.yaml up -d --no-deps api
+                    docker compose \
+                        -f ${DEPLOY_DIR}/compose.yaml \
+                        up -d --no-deps api frontend
                 '''
             }
         }
