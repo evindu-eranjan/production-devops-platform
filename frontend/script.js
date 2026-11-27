@@ -1,5 +1,5 @@
 
-const API_URL = "http://56.10.172.216:8000";
+const API_URL = "/api";
 
 // Load all tasks from backend
 async function loadTasks() {
@@ -42,6 +42,7 @@ async function loadTasks() {
 
             const actions = document.createElement("div");
 
+            // Complete task
             if (!task.completed) {
                 const completeButton = document.createElement("button");
                 completeButton.textContent = "Complete";
@@ -49,6 +50,7 @@ async function loadTasks() {
                 actions.appendChild(completeButton);
             }
 
+            // Delete task
             const deleteButton = document.createElement("button");
             deleteButton.textContent = "Delete";
             deleteButton.style.marginLeft = "8px";
